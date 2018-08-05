@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { Marker, Polyline, Polygon } from 'react-native-maps';
+import MapView, { Polygon } from 'react-native-maps';
 
 
 export default class App extends Component {
