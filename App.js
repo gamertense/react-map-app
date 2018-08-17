@@ -1,51 +1,77 @@
 import React, { Component } from 'react';
-import { StyleSheet, View } from 'react-native';
-import MapView, { Polygon } from 'react-native-maps';
+import { Dimensions, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon } from 'react-native-maps';
 
+const { width, height } = Dimensions.get('window');
+
+const ASPECT_RATIO = width / height;
+const LATITUDE = 37.78825;
+const LONGITUDE = -122.4324;
+const LATITUDE_DELTA = 0.0922;
+const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 export default class App extends Component {
   state = {
-    polygons: [
-      {
-        latitude: 37.8025259,
-        longitude: -122.4351431
-      }
-    ]
+    region: {
+      latitude: LATITUDE,
+      longitude: LONGITUDE,
+      latitudeDelta: LATITUDE_DELTA,
+      longitudeDelta: LONGITUDE_DELTA,
+    },
+    polygons: []
   }
 
-  onPress(e) {
-    // console.log(e.nativeEvent)
-    const lat = e.nativeEvent.coordinate.latitude;
-    const long = e.nativeEvent.coordinate.longitude;
+  onRegionChange = (region) => {
+    this.setState({ region });
+  }
+
+  onPress = () => {
+    // const lat = e.nativeEvent.coordinate.latitude;
+    // const long = e.nativeEvent.coordinate.longitude;
 
     polygonsCopy = [...this.state.polygons];
     polygonsCopy.push({
-      latitude: lat,
-      longitude: long
+      latitude: this.state.region.latitude,
+      longitude: this.state.region.longitude
     })
     this.setState({ polygons: polygonsCopy })
   }
 
   render() {
-    const initialRegion = {
-      latitude: 37.8025259,
-      longitude: -122.4351431,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    }
-
     return (
       <View style={styles.container}>
         <MapView style={styles.map}
-          initialRegion={initialRegion}
-          onPress={e => this.onPress(e)}
+          provider={PROVIDER_GOOGLE}
+          initialRegion={this.state.region}
+          mapType={MAP_TYPES.HYBRID}
+          onRegionChange={region => this.onRegionChange(region)}
         >
+          <Marker
+            coordinate={{
+              latitude: this.state.region.latitude,
+              longitude: this.state.region.longitude
+            }}
+          />
           <Polygon
             coordinates={this.state.polygons}
             fillColor="rgba(0, 200, 0, 0.5)"
             strokeColor="rgba(0,0,0,0.5)"
             strokeWidth={2} />
         </MapView>
+        <View style={[styles.bubble, styles.latlng]}>
+          <Text style={{ textAlign: 'center' }}>
+            {this.state.region.latitude.toPrecision(7)},
+            {this.state.region.longitude.toPrecision(7)}
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            onPress={this.onPress}
+            style={[styles.bubble, styles.button]}
+          >
+            <Text>+</Text>
+          </TouchableOpacity>
+        </View>
       </View >
     );
   }
@@ -53,19 +79,32 @@ export default class App extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   map: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  }
+    ...StyleSheet.absoluteFillObject,
+  },
+  bubble: {
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  latlng: {
+    width: 200,
+    alignItems: 'stretch',
+  },
+  button: {
+    width: 80,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginVertical: 20,
+    backgroundColor: 'transparent',
+  },
 });
