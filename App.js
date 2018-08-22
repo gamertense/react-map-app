@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Dimensions, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon } from 'react-native-maps';
+import { Icon } from 'react-native-elements'
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,7 +22,7 @@ export default class App extends Component {
     polygons: []
   }
 
-  onRegionChange = (region) => {
+  onRegionChangeComplete = (region) => {
     this.setState({ region });
   }
 
@@ -44,20 +45,21 @@ export default class App extends Component {
           provider={PROVIDER_GOOGLE}
           initialRegion={this.state.region}
           mapType={MAP_TYPES.HYBRID}
-          onRegionChange={region => this.onRegionChange(region)}
+          onRegionChangeComplete={region => this.onRegionChangeComplete(region)}
         >
-          <Marker
-            coordinate={{
-              latitude: this.state.region.latitude,
-              longitude: this.state.region.longitude
-            }}
-          />
           <Polygon
             coordinates={this.state.polygons}
             fillColor="rgba(0, 200, 0, 0.5)"
             strokeColor="rgba(0,0,0,0.5)"
             strokeWidth={2} />
         </MapView>
+        <View style={styles.target} >
+          <Icon
+            type='material-community'
+            name='target'
+            color='#fff'
+          />
+        </View>
         <View style={[styles.bubble, styles.latlng]}>
           <Text style={{ textAlign: 'center' }}>
             {this.state.region.latitude.toPrecision(7)},
@@ -80,11 +82,18 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
+    top: 20,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  target: {
+    position: 'absolute',
+    top: '48%',
+    right: 0,
+    left: 0,
   },
   bubble: {
     backgroundColor: 'rgba(255,255,255,0.7)',
