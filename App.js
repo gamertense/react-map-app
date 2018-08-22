@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Dimensions, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon, Polyline } from 'react-native-maps';
 import { Icon } from 'react-native-elements'
 
 const { width, height } = Dimensions.get('window');
@@ -19,7 +19,8 @@ export default class App extends Component {
       latitudeDelta: LATITUDE_DELTA,
       longitudeDelta: LONGITUDE_DELTA,
     },
-    polygons: []
+    polygons: [],
+    polylines: []
   }
 
   onRegionChangeComplete = (region) => {
@@ -27,18 +28,21 @@ export default class App extends Component {
   }
 
   onPress = () => {
-    // const lat = e.nativeEvent.coordinate.latitude;
-    // const long = e.nativeEvent.coordinate.longitude;
-
     polygonsCopy = [...this.state.polygons];
     polygonsCopy.push({
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude
     })
+
     this.setState({ polygons: polygonsCopy })
   }
 
   render() {
+    const polylines = this.state.polygons.length > 0 ? [this.state.polygons[this.state.polygons.length - 1], {
+      latitude: this.state.region.latitude,
+      longitude: this.state.region.longitude,
+    }] : null
+    console.log(polylines)
     return (
       <View style={styles.container}>
         <MapView style={styles.map}
@@ -47,11 +51,17 @@ export default class App extends Component {
           mapType={MAP_TYPES.HYBRID}
           onRegionChangeComplete={region => this.onRegionChangeComplete(region)}
         >
+          <Polyline
+            coordinates={polylines}
+            strokeColor="#fff"
+            strokeWidth={3}
+          />
           <Polygon
             coordinates={this.state.polygons}
             fillColor="rgba(0, 200, 0, 0.5)"
             strokeColor="rgba(0,0,0,0.5)"
-            strokeWidth={2} />
+            strokeWidth={2}
+          />
         </MapView>
         <View style={styles.target} >
           <Icon
