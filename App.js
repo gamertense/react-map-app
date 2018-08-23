@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Dimensions, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon, Polyline } from 'react-native-maps';
-import { Icon } from 'react-native-elements'
+import { Icon, Button } from 'react-native-elements'
 
 const { width, height } = Dimensions.get('window');
 
@@ -69,14 +69,12 @@ export default class App extends Component {
             color='#fff'
           />
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={this.onPress}
-            style={[styles.bubble, styles.button]}
-          >
-            <Text>+</Text>
-          </TouchableOpacity>
-        </View>
+        <Icon
+          raised
+          name='add'
+          type='MaterialIcons'
+          color='#517fa4'
+          onPress={this.onPress} />
       </View >
     );
   }
@@ -96,26 +94,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '48%',
     alignItems: 'center',
-  },
-  bubble: {
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  latlng: {
-    width: 200,
-    alignItems: 'stretch',
-  },
-  button: {
-    width: 80,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    marginHorizontal: 10,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginVertical: 20,
-    backgroundColor: 'transparent',
   },
 });
