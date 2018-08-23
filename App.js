@@ -27,7 +27,7 @@ export default class App extends Component {
     this.setState({ region });
   }
 
-  onPress = () => {
+  handleAdd = () => {
     polygonsCopy = [...this.state.polygons];
     polygonsCopy.push({
       latitude: this.state.region.latitude,
@@ -69,12 +69,14 @@ export default class App extends Component {
             color='#fff'
           />
         </View>
-        <Icon
-          raised
-          name='add'
-          type='MaterialIcons'
-          color='#517fa4'
-          onPress={this.onPress} />
+        <View style={styles.add} >
+          <Icon
+            raised
+            name='add'
+            type='MaterialIcons'
+            color='#517fa4'
+            onPress={this.handleAdd} />
+        </View>
       </View >
     );
   }
@@ -84,7 +86,6 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     top: 20,
-    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   map: {
@@ -93,6 +94,9 @@ const styles = StyleSheet.create({
   target: {
     position: 'absolute',
     top: '48%',
-    alignItems: 'center',
   },
+  add: {
+    position: 'absolute',
+    bottom: '5%',
+  }
 });
