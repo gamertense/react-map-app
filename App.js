@@ -23,7 +23,7 @@ export default class App extends Component {
     polylines: []
   }
 
-  onRegionChangeComplete = (region) => {
+  onRegionChange = (region) => {
     this.setState({ region });
   }
 
@@ -42,14 +42,13 @@ export default class App extends Component {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude,
     }] : null
-    console.log(polylines)
     return (
       <View style={styles.container}>
         <MapView style={styles.map}
           provider={PROVIDER_GOOGLE}
           initialRegion={this.state.region}
           mapType={MAP_TYPES.HYBRID}
-          onRegionChangeComplete={region => this.onRegionChangeComplete(region)}
+          onRegionChange={region => this.onRegionChange(region)}
         >
           <Polyline
             coordinates={polylines}
@@ -69,12 +68,6 @@ export default class App extends Component {
             name='target'
             color='#fff'
           />
-        </View>
-        <View style={[styles.bubble, styles.latlng]}>
-          <Text style={{ textAlign: 'center' }}>
-            {this.state.region.latitude.toPrecision(7)},
-            {this.state.region.longitude.toPrecision(7)}
-          </Text>
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -102,8 +95,7 @@ const styles = StyleSheet.create({
   target: {
     position: 'absolute',
     top: '48%',
-    right: 0,
-    left: 0,
+    alignItems: 'center',
   },
   bubble: {
     backgroundColor: 'rgba(255,255,255,0.7)',
