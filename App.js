@@ -21,7 +21,6 @@ export default class App extends Component {
       longitudeDelta: LONGITUDE_DELTA,
     },
     polygons: [],
-    polylines: [],
     area: 0,
     flex: 0
   }
@@ -53,8 +52,7 @@ export default class App extends Component {
   goBack = () => {
     const polygonsCopy = [...this.state.polygons]
     polygonsCopy.splice(-1, 1)
-    console.log(polygonsCopy)
-    this.setState({ polygons: polygonsCopy, polylines: [] })
+    this.setState({ polygons: polygonsCopy })
   }
 
   showAreaMessage() {
@@ -81,7 +79,6 @@ export default class App extends Component {
           onRegionChange={region => this.setState({ region })}
           showsMyLocationButton
           showsUserLocation
-          followsUserLocation
         >
           <Polyline
             coordinates={polylines}
