@@ -22,7 +22,12 @@ export default class App extends Component {
     },
     polygons: [],
     polylines: [],
-    area: 0
+    area: 0,
+    flex: 0
+  }
+
+  componentDidMount() {
+    setTimeout(() => this.setState({ flex: 1 }), 100);
   }
 
   handleAdd = () => {
@@ -47,7 +52,9 @@ export default class App extends Component {
 
   goBack = () => {
     const polygonsCopy = [...this.state.polygons]
-    this.setState({ polygons: polygonsCopy.splice(-1, 1), polylines: [] })
+    polygonsCopy.splice(-1, 1)
+    console.log(polygonsCopy)
+    this.setState({ polygons: polygonsCopy, polylines: [] })
   }
 
   showAreaMessage() {
@@ -61,18 +68,20 @@ export default class App extends Component {
   }
 
   render() {
-    console.log(this.state.polygons)
     const polylines = this.state.polygons.length > 0 ? [this.state.polygons[this.state.polygons.length - 1], {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude,
     }] : null
     return (
       <View style={styles.container}>
-        <MapView style={styles.map}
+        <MapView style={[styles.map, { flex: this.state.flex }]}
           provider={PROVIDER_GOOGLE}
           initialRegion={this.state.region}
           mapType={MAP_TYPES.HYBRID}
           onRegionChange={region => this.setState({ region })}
+          showsMyLocationButton
+          showsUserLocation
+          followsUserLocation
         >
           <Polyline
             coordinates={polylines}
@@ -86,7 +95,7 @@ export default class App extends Component {
             strokeWidth={2}
           />
         </MapView>
-        {/* {this.showAreaMessage} */}
+        {this.showAreaMessage()}
         <View style={styles.target} >
           <Icon
             type='material-community'
@@ -153,6 +162,6 @@ const styles = StyleSheet.create({
   clear: {
     position: 'absolute',
     right: '2%',
-    bottom: '2%',
+    bottom: '15%',
   }
 });
