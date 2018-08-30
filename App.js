@@ -22,11 +22,7 @@ export default class App extends Component {
     },
     polygons: [],
     area: 0,
-    flex: 0
-  }
-
-  componentDidMount() {
-    setTimeout(() => this.setState({ flex: 1 }), 100);
+    followsUserLocation: false
   }
 
   handleAdd = () => {
@@ -45,7 +41,10 @@ export default class App extends Component {
         "type": "Polygon",
         "coordinates": [array_coordinates]
       }
-      this.setState({ area: (geojsonArea.geometry(geojson) * 0.000625).toFixed(2) }) //Converted to Rai
+      const areaInRai = Math.floor(geojsonArea.geometry(geojson) * 0.000625)
+      const areaInNgarn = Math.floor(geojsonArea.geometry(geojson) * 0.0025)
+      const areaInWa = Math.floor(areaInRai * 0.25)
+      this.setState({ area: areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา' }) //Converted to Rai
     }
   }
 
@@ -59,31 +58,38 @@ export default class App extends Component {
     if (this.state.aera !== 0) {
       return (
         <View style={styles.area_message} >
-          <Text> {this.state.area} ไร่ </Text>
+          <Text> {this.state.area}</Text>
         </View>
       )
     }
   }
 
   render() {
-    const polylines = this.state.polygons.length > 0 ? [this.state.polygons[this.state.polygons.length - 1], {
+    const polygonsLength = this.state.polygons.length
+    const polyline = polygonsLength == 2 ? [this.state.polygons[0], this.state.polygons[1]] : null
+    const polylines = polygonsLength > 0 ? [this.state.polygons[polygonsLength - 1], {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude,
     }] : null
     return (
       <View style={styles.container}>
-        <MapView style={[styles.map, { flex: this.state.flex }]}
-          provider={PROVIDER_GOOGLE}
+        <MapView style={styles.map}
+          provider={PROVIDER_DEFAULT}
           initialRegion={this.state.region}
           mapType={MAP_TYPES.HYBRID}
           onRegionChange={region => this.setState({ region })}
-          showsMyLocationButton
           showsUserLocation
+          showsMyLocationButton
         >
+          <Polyline
+            coordinates={polyline}
+            strokeColor="#fff"
+            strokeWidth={2}
+          />
           <Polyline
             coordinates={polylines}
             strokeColor="#fff"
-            strokeWidth={3}
+            strokeWidth={2}
           />
           <Polygon
             coordinates={this.state.polygons}
