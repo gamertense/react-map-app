@@ -34,7 +34,17 @@ export default class App extends Component {
     })
 
     this.setState({ polygons: polygonsCopy })
+    this.calculateArea(polygons)
+  }
 
+  goBack = () => {
+    const polygonsCopy = [...this.state.polygons]
+    polygonsCopy.splice(-1, 1)
+    this.setState({ polygons: polygonsCopy })
+  }
+
+  calculateArea = () => {
+    const polygons = this.state.polygons
     if (polygons.length > 1) {
       const array_coordinates = polygons.map(obj => [obj.longitude, obj.latitude])
       const geojson = {
@@ -44,21 +54,10 @@ export default class App extends Component {
       const areaInRai = Math.floor(geojsonArea.geometry(geojson) * 0.000625)
       const areaInNgarn = Math.floor(geojsonArea.geometry(geojson) * 0.0025)
       const areaInWa = Math.floor(areaInRai * 0.25)
-      this.setState({ area: areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา' }) //Converted to Rai
-    }
-  }
 
-  goBack = () => {
-    const polygonsCopy = [...this.state.polygons]
-    polygonsCopy.splice(-1, 1)
-    this.setState({ polygons: polygonsCopy })
-  }
-
-  showAreaMessage() {
-    if (this.state.aera !== 0) {
       return (
         <View style={styles.area_message} >
-          <Text> {this.state.area}</Text>
+          <Text> {areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา'}</Text>
         </View>
       )
     }
@@ -98,7 +97,7 @@ export default class App extends Component {
             strokeWidth={2}
           />
         </MapView>
-        {this.showAreaMessage()}
+        {this.calculateArea()}
         <View style={styles.target} >
           <Icon
             type='material-community'
