@@ -1,13 +1,10 @@
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  Dimensions,
-} from 'react-native';
+import { StyleSheet, View, Dimensions, Text } from 'react-native';
 import { Icon } from 'react-native-elements'
 import MapView, { MAP_TYPES, Polyline, Marker, Polygon } from 'react-native-maps';
 
 const geolib = require('geolib')
+const geojsonArea = require('@mapbox/geojson-area');
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,7 +32,7 @@ export default class App extends React.Component {
   }
 
   handleAdd = () => {
-    const { polygon, creatingHole } = this.state;
+    const polygon = this.state.polygon;
     const coord = {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude
@@ -59,6 +56,30 @@ export default class App extends React.Component {
           ],
         },
       });
+    }
+  }
+
+  calculateArea = () => {
+    const polygons = this.state.polygon.coordinates
+    if (polygons.length > 1) {
+      const array_coordinates = polygons.map(obj => [obj.longitude, obj.latitude])
+      const geojson = {
+        "type": "Polygon",
+        "coordinates": [array_coordinates]
+      }
+      console.log(geojsonArea.geometry(geojson))
+      let areaInRai = geojsonArea.geometry(geojson) / 1600
+      let areaInNgarn = areaInRai % 1 * 4
+      let areaInWa = (areaInNgarn % 1) * 100
+      areaInRai = Math.floor(areaInRai)
+      areaInNgarn = Math.floor(areaInNgarn)
+      areaInWa = Math.floor(areaInWa)
+
+      return (
+        <View style={styles.area_message} >
+          <Text> {areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา'}</Text>
+        </View>
+      )
     }
   }
 
@@ -122,6 +143,9 @@ export default class App extends React.Component {
             />
           )}
         </MapView>
+        {this.state.polygon && (
+          this.calculateArea()
+        )}
         <View style={styles.target} >
           <Icon
             type='material-community'
@@ -165,7 +189,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    top: 25
+    top: 27
   },
   map: {
     ...StyleSheet.absoluteFillObject,
@@ -174,9 +198,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '48%',
   },
-  latlng: {
-    width: 200,
-    alignItems: 'stretch',
+  area_message: {
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    padding: 10
   },
   buttonContainer: {
     flexDirection: 'row',
