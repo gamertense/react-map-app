@@ -1,18 +1,23 @@
-import React, { Component } from 'react';
-import { Dimensions, StyleSheet, View, TouchableOpacity, Text } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MAP_TYPES, Marker, Polygon, Polyline } from 'react-native-maps';
+import React from 'react';
+import {
+  StyleSheet,
+  View,
+  Dimensions,
+} from 'react-native';
 import { Icon } from 'react-native-elements'
+import MapView, { MAP_TYPES, Polyline, Marker, Polygon } from 'react-native-maps';
+
+const geolib = require('geolib')
 
 const { width, height } = Dimensions.get('window');
+
 const ASPECT_RATIO = width / height;
 const LATITUDE = 37.78825;
 const LONGITUDE = -122.4324;
-const LATITUDE_DELTA = 0.0922;
+const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-var geojsonArea = require('@mapbox/geojson-area');
-
-export default class App extends Component {
+export default class App extends React.Component {
   state = {
     region: {
       latitude: LATITUDE,
@@ -20,84 +25,103 @@ export default class App extends Component {
       latitudeDelta: LATITUDE_DELTA,
       longitudeDelta: LONGITUDE_DELTA,
     },
-    polygons: [],
-    area: 0,
-    followsUserLocation: false
+    polygon: null,
+    marginBottom: 1
+  };
+
+  onRegionChangeComplete = () => {
+    if (this.state.polygon)
+      this.state.polygon.coordinates.length > 0 ? this.marker1.showCallout() : this.marker1.hideCallout()
   }
 
   handleAdd = () => {
-    const polygons = this.state.polygons
-    polygonsCopy = [...polygons];
-    polygonsCopy.push({
+    const { polygon, creatingHole } = this.state;
+    const coord = {
       latitude: this.state.region.latitude,
       longitude: this.state.region.longitude
-    })
-
-    this.setState({ polygons: polygonsCopy })
-    this.calculateArea(polygons)
-  }
-
-  goBack = () => {
-    const polygonsCopy = [...this.state.polygons]
-    polygonsCopy.splice(-1, 1)
-    this.setState({ polygons: polygonsCopy })
-  }
-
-  calculateArea = () => {
-    const polygons = this.state.polygons
-    if (polygons.length > 1) {
-      const array_coordinates = polygons.map(obj => [obj.longitude, obj.latitude])
-      const geojson = {
-        "type": "Polygon",
-        "coordinates": [array_coordinates]
-      }
-      const areaInRai = Math.floor(geojsonArea.geometry(geojson) * 0.000625)
-      const areaInNgarn = Math.floor(geojsonArea.geometry(geojson) * 0.0025)
-      const areaInWa = Math.floor(areaInRai * 0.25)
-
-      return (
-        <View style={styles.area_message} >
-          <Text> {areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา'}</Text>
-        </View>
-      )
+    }
+    if (!polygon) {
+      this.setState({
+        polygon: {
+          coordinates: [{
+            latitude: this.state.region.latitude,
+            longitude: this.state.region.longitude
+          }],
+        },
+      });
+    } else {
+      this.setState({
+        polygon: {
+          ...polygon,
+          coordinates: [
+            ...polygon.coordinates,
+            coord,
+          ],
+        },
+      });
     }
   }
 
+  backButton = () => {
+    const polygonCopy = [...this.state.polygon.coordinates]
+    polygonCopy.splice(-1, 1)
+    this.setState({ polygon: { coordinates: polygonCopy } })
+  }
+
   render() {
-    const polygonsLength = this.state.polygons.length
-    const polyline = polygonsLength == 2 ? [this.state.polygons[0], this.state.polygons[1]] : null
-    const polylines = polygonsLength > 0 ? [this.state.polygons[polygonsLength - 1], {
-      latitude: this.state.region.latitude,
-      longitude: this.state.region.longitude,
-    }] : null
+    let polyline = null
+    let distance = null
+    if (this.state.polygon) {
+      const polygonLength = this.state.polygon.coordinates.length
+      polyline = polygonLength > 0 ? [this.state.polygon.coordinates[polygonLength - 1], {
+        latitude: this.state.region.latitude,
+        longitude: this.state.region.longitude,
+      }] : []
+      distance = polygonLength > 0 ? geolib.getDistance(...polyline).toString() : ''
+    }
+
     return (
       <View style={styles.container}>
-        <MapView style={styles.map}
-          provider={PROVIDER_DEFAULT}
-          initialRegion={this.state.region}
+        <MapView
+          provider={this.props.provider}
+          style={[styles.map, { marginBottom: this.state.marginBottom }]}
           mapType={MAP_TYPES.HYBRID}
+          initialRegion={this.state.region}
           onRegionChange={region => this.setState({ region })}
+          onRegionChangeComplete={this.onRegionChangeComplete}
+          onMapReady={() => this.setState({ marginBottom: 0 })}
           showsUserLocation
+          followsUserLocation
           showsMyLocationButton
         >
-          <Polyline
-            coordinates={polyline}
-            strokeColor="#fff"
-            strokeWidth={2}
-          />
-          <Polyline
-            coordinates={polylines}
-            strokeColor="#fff"
-            strokeWidth={2}
-          />
-          <Polygon
-            coordinates={this.state.polygons}
-            fillColor="rgba(0, 200, 0, 0.5)"
-            strokeColor="rgba(0,0,0,0.5)"
-            strokeWidth={2}
-          />
+          {polyline && (
+            <Polyline
+              coordinates={polyline}
+              strokeColor="#fff"
+              strokeWidth={2}
+            />
+          )}
+          {distance && (
+            <Marker
+              ref={ref => { this.marker1 = ref; }}
+              coordinate={{
+                latitude: this.state.region.latitude,
+                longitude: this.state.region.longitude,
+              }}
+              title={distance + ' เมตร'}
+              calloutAnchor={{ x: 0.5, y: 0.75 }}
+              opacity={0}
+            />
+          )}
+          {this.state.polygon && (
+            <Polygon
+              coordinates={this.state.polygon.coordinates}
+              strokeColor="#FFF"
+              fillColor="rgba(255,0,0,0.5)"
+              strokeWidth={1}
+            />
+          )}
         </MapView>
-        {this.calculateArea()}
         <View style={styles.target} >
           <Icon
             type='material-community'
@@ -105,31 +129,33 @@ export default class App extends Component {
             color='#fff'
           />
         </View>
-        <View style={styles.add_button} >
-          <Icon
-            raised
-            name='add'
-            type='MaterialIcons'
-            color='#517fa4'
-            onPress={this.handleAdd} />
+        <View style={styles.buttonContainer}>
+          <View>
+            <Icon
+              raised
+              name='arrow-back'
+              type='MaterialIcons'
+              color='#517fa4'
+              onPress={this.backButton} />
+          </View>
+          <View>
+            <Icon
+              raised
+              name='add'
+              type='MaterialIcons'
+              color='#517fa4'
+              onPress={this.handleAdd} />
+          </View>
+          <View >
+            <Icon
+              raised
+              name='clear'
+              type='MaterialIcons'
+              color='#517fa4'
+              onPress={() => this.setState({ polygon: null })} />
+          </View>
         </View>
-        <View style={styles.go_back} >
-          <Icon
-            raised
-            name='arrow-back'
-            type='MaterialIcons'
-            color='#517fa4'
-            onPress={this.goBack} />
-        </View>
-        <View style={styles.clear} >
-          <Icon
-            raised
-            name='clear'
-            type='MaterialIcons'
-            color='#517fa4'
-            onPress={() => this.setState({ polygons: [] })} />
-        </View>
-      </View >
+      </View>
     );
   }
 }
@@ -137,33 +163,24 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    top: 20,
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    top: 25
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-  },
-  area_message: {
-    alignItems: 'center',
-    backgroundColor: '#DDDDDD',
-    padding: 10
   },
   target: {
     position: 'absolute',
     top: '48%',
   },
-  add_button: {
-    position: 'absolute',
-    bottom: '2%',
+  latlng: {
+    width: 200,
+    alignItems: 'stretch',
   },
-  go_back: {
-    position: 'absolute',
-    left: '2%',
-    bottom: '2%',
+  buttonContainer: {
+    flexDirection: 'row',
+    marginVertical: 20,
+    backgroundColor: 'transparent',
   },
-  clear: {
-    position: 'absolute',
-    right: '2%',
-    bottom: '15%',
-  }
 });
