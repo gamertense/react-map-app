@@ -77,7 +77,7 @@ export default class App extends React.Component {
 
       return (
         <View style={styles.area_message} >
-          <Text> {areaInRai + ' ไร่' + areaInNgarn + ' งาน' + areaInWa + ' ตารางวา'}</Text>
+          <Text> {areaInRai + ' ไร่ ' + areaInNgarn + ' งาน ' + areaInWa + ' ตารางวา '}</Text>
         </View>
       )
     }
