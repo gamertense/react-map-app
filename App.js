@@ -67,7 +67,6 @@ export default class App extends React.Component {
         "type": "Polygon",
         "coordinates": [array_coordinates]
       }
-      console.log(geojsonArea.geometry(geojson))
       let areaInRai = geojsonArea.geometry(geojson) / 1600
       let areaInNgarn = areaInRai % 1 * 4
       let areaInWa = (areaInNgarn % 1) * 100
