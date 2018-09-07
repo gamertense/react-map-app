@@ -14,6 +14,11 @@ const LONGITUDE = -122.4324;
 const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
+let id = 0
+function randomColor() {
+  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+}
+
 export default class App extends React.Component {
   state = {
     region: {
@@ -23,10 +28,11 @@ export default class App extends React.Component {
       longitudeDelta: LONGITUDE_DELTA,
     },
     polygon: null,
+    markers: [],
     marginBottom: 1
   };
 
-  onRegionChangeComplete = () => {
+  componentDidUpdate() {
     if (this.state.polygon)
       this.state.polygon.coordinates.length > 0 ? this.marker1.showCallout() : this.marker1.hideCallout()
   }
@@ -45,6 +51,16 @@ export default class App extends React.Component {
             longitude: this.state.region.longitude
           }],
         },
+        markers: [
+          {
+            coordinate: {
+              latitude: this.state.region.latitude,
+              longitude: this.state.region.longitude
+            },
+            key: id++,
+            color: randomColor(),
+          },
+        ],
       });
     } else {
       this.setState({
@@ -55,6 +71,17 @@ export default class App extends React.Component {
             coord,
           ],
         },
+        markers: [
+          ...this.state.markers,
+          {
+            coordinate: {
+              latitude: this.state.region.latitude,
+              longitude: this.state.region.longitude
+            },
+            key: id++,
+            color: randomColor(),
+          },
+        ],
       });
     }
   }
@@ -83,17 +110,22 @@ export default class App extends React.Component {
   }
 
   backButton = () => {
-    const polygonCopy = [...this.state.polygon.coordinates]
-    polygonCopy.splice(-1, 1)
-    this.setState({ polygon: { coordinates: polygonCopy } })
+    if (this.state.polygon) {
+      const polygonCopy = [...this.state.polygon.coordinates]
+      const markersCopy = [...this.state.markers]
+      polygonCopy.splice(-1, 1)
+      markersCopy.splice(-1, 1)
+      this.setState({ polygon: { coordinates: polygonCopy }, markers: markersCopy })
+    }
   }
 
   render() {
     let polyline = null
     let distance = null
     if (this.state.polygon) {
-      const polygonLength = this.state.polygon.coordinates.length
-      polyline = polygonLength > 0 ? [this.state.polygon.coordinates[polygonLength - 1], {
+      const polygon = this.state.polygon
+      const polygonLength = polygon.coordinates.length
+      polyline = polygonLength > 0 ? [polygon.coordinates[polygonLength - 1], {
         latitude: this.state.region.latitude,
         longitude: this.state.region.longitude,
       }] : []
@@ -107,13 +139,19 @@ export default class App extends React.Component {
           style={[styles.map, { marginBottom: this.state.marginBottom }]}
           mapType={MAP_TYPES.HYBRID}
           initialRegion={this.state.region}
-          onRegionChange={region => this.setState({ region })}
-          onRegionChangeComplete={this.onRegionChangeComplete}
+          onRegionChangeComplete={region => this.setState({ region })}
           onMapReady={() => this.setState({ marginBottom: 0 })}
           showsUserLocation
           followsUserLocation
           showsMyLocationButton
         >
+          {this.state.markers.map(marker => (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coordinate}
+              pinColor={marker.color}
+            />
+          ))}
           {polyline && (
             <Polyline
               coordinates={polyline}
@@ -121,18 +159,16 @@ export default class App extends React.Component {
               strokeWidth={2}
             />
           )}
-          {distance && (
-            <Marker
-              ref={ref => { this.marker1 = ref; }}
-              coordinate={{
-                latitude: this.state.region.latitude,
-                longitude: this.state.region.longitude,
-              }}
-              title={distance + ' เมตร'}
-              calloutAnchor={{ x: 0.5, y: 0.75 }}
-              opacity={0}
-            />
-          )}
+          <Marker
+            ref={ref => { this.marker1 = ref; }}
+            coordinate={{
+              latitude: this.state.region.latitude,
+              longitude: this.state.region.longitude,
+            }}
+            title={distance + ' เมตร'}
+            calloutAnchor={{ x: 0.5, y: 0.75 }}
+            opacity={0}
+          />
           {this.state.polygon && (
             <Polygon
               coordinates={this.state.polygon.coordinates}
@@ -175,7 +211,7 @@ export default class App extends React.Component {
               name='clear'
               type='MaterialIcons'
               color='#517fa4'
-              onPress={() => this.setState({ polygon: null })} />
+              onPress={() => this.setState({ polygon: null, markers: [] })} />
           </View>
         </View>
       </View>
