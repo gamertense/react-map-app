@@ -46,17 +46,11 @@ export default class App extends React.Component {
     if (!polygon) {
       this.setState({
         polygon: {
-          coordinates: [{
-            latitude: this.state.region.latitude,
-            longitude: this.state.region.longitude
-          }],
+          coordinates: [coord],
         },
         markers: [
           {
-            coordinate: {
-              latitude: this.state.region.latitude,
-              longitude: this.state.region.longitude
-            },
+            coordinate: coord,
             key: id++,
             color: randomColor(),
           },
@@ -74,10 +68,7 @@ export default class App extends React.Component {
         markers: [
           ...this.state.markers,
           {
-            coordinate: {
-              latitude: this.state.region.latitude,
-              longitude: this.state.region.longitude
-            },
+            coordinate: coord,
             key: id++,
             color: randomColor(),
           },
