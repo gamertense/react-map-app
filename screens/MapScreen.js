@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Dimensions, Text } from 'react-native';
+import { StyleSheet, View, Dimensions, Text, Button } from 'react-native';
 import { Icon } from 'react-native-elements'
 import MapView, { MAP_TYPES, Polyline, Marker, Polygon } from 'react-native-maps';
 
@@ -20,6 +20,10 @@ function randomColor() {
 }
 
 export default class MapScreen extends React.Component {
+    static navigationOptions = {
+        title: 'Land Measure',
+    };
+    
     state = {
         region: {
             latitude: LATITUDE,
@@ -33,6 +37,18 @@ export default class MapScreen extends React.Component {
     };
 
     componentDidUpdate() {
+        //Getting result from searching
+        const { navigation } = this.props;
+        const lat = navigation.getParam('lat');
+        const lng = navigation.getParam('lng');
+        if (lat) {
+            this.map.animateToCoordinate({
+                latitude: lat,
+                longitude: lng,
+            })
+        }
+
+        //Show callout (popup) when area is drawn.
         if (this.state.polygon)
             this.state.polygon.coordinates.length > 0 ? this.marker1.showCallout() : this.marker1.hideCallout()
     }
@@ -126,7 +142,8 @@ export default class MapScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <MapView
-                    provider={this.props.provider}
+                    ref={ref => { this.map = ref; }}
+                    provider={'google'}
                     style={[styles.map, { marginBottom: this.state.marginBottom }]}
                     mapType={MAP_TYPES.HYBRID}
                     initialRegion={this.state.region}
@@ -204,6 +221,14 @@ export default class MapScreen extends React.Component {
                             color='#517fa4'
                             onPress={() => this.setState({ polygon: null, markers: [] })} />
                     </View>
+                    <View>
+                        <Icon
+                            raised
+                            name='search'
+                            type='MaterialIcons'
+                            color='#517fa4'
+                            onPress={() => { this.props.navigation.navigate('Search'); }} />
+                    </View>
                 </View>
             </View>
         );
@@ -215,7 +240,6 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        top: 27
     },
     map: {
         ...StyleSheet.absoluteFillObject,

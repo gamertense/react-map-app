@@ -3,7 +3,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 
 export default class GooglePlacesInput extends React.Component {
     static navigationOptions = {
-        title: 'Search',
+        title: 'Search City',
     };
 
     render() {
@@ -17,7 +17,8 @@ export default class GooglePlacesInput extends React.Component {
                 fetchDetails={true}
                 renderDescription={row => row.description} // custom description render
                 onPress={(data, details = null) => { // 'details' is provided when fetchDetails = true
-                    console.log(data, details);
+                    // console.log(details.geometry.location);
+                    this.props.navigation.navigate('Map', details.geometry.location);
                 }}
 
                 getDefaultValue={() => ''}
