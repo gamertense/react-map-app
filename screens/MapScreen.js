@@ -47,6 +47,8 @@ export default class MapScreen extends React.Component {
                 longitude: lng,
             })
         }
+        if (this.state.polygon)
+            this.state.polygon.coordinates.length > 1 ? this.distMarker.showCallout() : null
     }
 
     handleAdd = () => {
@@ -182,23 +184,14 @@ export default class MapScreen extends React.Component {
                     ))}
                     {callouts.map(c => (
                         <Marker
-                            ref={ref => { this.callout = ref; }}
+                            ref={ref => { this.distMarker = ref; }}
                             key={c.id}
                             coordinate={c.coordinate}
                             title={c.distance + ' เมตร'}
-                            calloutAnchor={{ x: 0.5, y: 0.75 }}
-                        // opacity={0}
+                            calloutAnchor={{ x: 0.5, y: 0 }}
+                            opacity={0}
                         />
                     ))}
-                    <Marker
-                        coordinate={{
-                            latitude: this.state.region.latitude,
-                            longitude: this.state.region.longitude,
-                        }}
-                        title={distance + ' เมตร'}
-                        calloutAnchor={{ x: 0.5, y: 0.75 }}
-                        opacity={0}
-                    />
                     {this.state.polygon && (
                         <Polygon
                             coordinates={this.state.polygon.coordinates}
