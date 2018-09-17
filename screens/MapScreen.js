@@ -23,7 +23,7 @@ export default class MapScreen extends React.Component {
     static navigationOptions = {
         title: 'Land Measure',
     };
-    
+
     state = {
         region: {
             latitude: LATITUDE,
@@ -47,10 +47,6 @@ export default class MapScreen extends React.Component {
                 longitude: lng,
             })
         }
-
-        //Show callout (popup) when area is drawn.
-        if (this.state.polygon)
-            this.state.polygon.coordinates.length > 0 ? this.marker1.showCallout() : this.marker1.hideCallout()
     }
 
     handleAdd = () => {
@@ -126,9 +122,25 @@ export default class MapScreen extends React.Component {
         }
     }
 
+    distOnEdge = (polygon) => {
+        let callouts = []
+        polygon.coordinates.map((coord, index, array) => {
+            const nextCoord = array[index + 1] ? array[index + 1] : null
+            if (nextCoord) {
+                const latitude = (coord.latitude + nextCoord.latitude) / 2
+                const longitude = (coord.longitude + nextCoord.longitude) / 2
+                const distance = geolib.getDistance({ latitude: coord.latitude, longitude: coord.longitude }, { latitude: nextCoord.latitude, longitude: nextCoord.longitude })
+                console.log(latitude, longitude)
+                callouts.push({ coordinate: { latitude, longitude }, distance, id: id++ })
+            }
+        })
+        return callouts
+    }
+
     render() {
         let polyline = null
         let distance = null
+        let callouts = []
         if (this.state.polygon) {
             const polygon = this.state.polygon
             const polygonLength = polygon.coordinates.length
@@ -137,6 +149,7 @@ export default class MapScreen extends React.Component {
                 longitude: this.state.region.longitude,
             }] : []
             distance = polygonLength > 0 ? geolib.getDistance(...polyline).toString() : ''
+            callouts = this.distOnEdge(polygon)
         }
 
         return (
@@ -153,13 +166,6 @@ export default class MapScreen extends React.Component {
                     followsUserLocation
                     showsMyLocationButton
                 >
-                    {this.state.markers.map(marker => (
-                        <Marker
-                            key={marker.key}
-                            coordinate={marker.coordinate}
-                            pinColor={marker.color}
-                        />
-                    ))}
                     {polyline && (
                         <Polyline
                             coordinates={polyline}
@@ -167,8 +173,24 @@ export default class MapScreen extends React.Component {
                             strokeWidth={2}
                         />
                     )}
+                    {this.state.markers.map(marker => (
+                        <Marker
+                            key={marker.key}
+                            coordinate={marker.coordinate}
+                            pinColor={marker.color}
+                        />
+                    ))}
+                    {callouts.map(c => (
+                        <Marker
+                            ref={ref => { this.callout = ref; }}
+                            key={c.id}
+                            coordinate={c.coordinate}
+                            title={c.distance + ' เมตร'}
+                            calloutAnchor={{ x: 0.5, y: 0.75 }}
+                        // opacity={0}
+                        />
+                    ))}
                     <Marker
-                        ref={ref => { this.marker1 = ref; }}
                         coordinate={{
                             latitude: this.state.region.latitude,
                             longitude: this.state.region.longitude,
