@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Dimensions, Text, Button } from 'react-native';
+import { StyleSheet, View, Dimensions, Text } from 'react-native';
+import DistanceMarker from '../DistanceMarker'
 import { Icon } from 'react-native-elements'
 import MapView, { MAP_TYPES, Polyline, Marker, Polygon } from 'react-native-maps';
 
@@ -47,8 +48,6 @@ export default class MapScreen extends React.Component {
                 longitude: lng,
             })
         }
-        if (this.state.polygon)
-            this.state.polygon.coordinates.length > 1 ? this.distMarker.showCallout() : null
     }
 
     handleAdd = () => {
@@ -132,7 +131,14 @@ export default class MapScreen extends React.Component {
                 const latitude = (coord.latitude + nextCoord.latitude) / 2
                 const longitude = (coord.longitude + nextCoord.longitude) / 2
                 const distance = geolib.getDistance({ latitude: coord.latitude, longitude: coord.longitude }, { latitude: nextCoord.latitude, longitude: nextCoord.longitude })
-                console.log(latitude, longitude)
+                distance = geolib.getDistance({ latitude: coord.latitude, longitude: coord.longitude }, { latitude: nextCoord.latitude, longitude: nextCoord.longitude })
+                callouts.push({ coordinate: { latitude, longitude }, distance, id: id++ })
+            }
+            if (index === array.length - 1 && index !== 0) { //Add callout between first and last point (marker).
+                const firstCoord = array[0]
+                const latitude = (coord.latitude + firstCoord.latitude) / 2
+                const longitude = (coord.longitude + firstCoord.longitude) / 2
+                const distance = geolib.getDistance({ latitude: coord.latitude, longitude: coord.longitude }, { latitude: firstCoord.latitude, longitude: firstCoord.longitude })
                 callouts.push({ coordinate: { latitude, longitude }, distance, id: id++ })
             }
         })
@@ -141,7 +147,6 @@ export default class MapScreen extends React.Component {
 
     render() {
         let polyline = null
-        let distance = null
         let callouts = []
         if (this.state.polygon) {
             const polygon = this.state.polygon
@@ -150,7 +155,6 @@ export default class MapScreen extends React.Component {
                 latitude: this.state.region.latitude,
                 longitude: this.state.region.longitude,
             }] : []
-            distance = polygonLength > 0 ? geolib.getDistance(...polyline).toString() : ''
             callouts = this.distOnEdge(polygon)
         }
 
@@ -184,13 +188,11 @@ export default class MapScreen extends React.Component {
                     ))}
                     {callouts.map(c => (
                         <Marker
-                            ref={ref => { this.distMarker = ref; }}
                             key={c.id}
                             coordinate={c.coordinate}
-                            title={c.distance + ' เมตร'}
-                            calloutAnchor={{ x: 0.5, y: 0 }}
-                            opacity={0}
-                        />
+                        >
+                            <DistanceMarker distance={c.distance} />
+                        </Marker>
                     ))}
                     {this.state.polygon && (
                         <Polygon
